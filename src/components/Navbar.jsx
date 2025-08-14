@@ -42,14 +42,14 @@ const Navbar = () => {
             >
               YouTube
             </NavLink>
-            {/* <NavLink
+            <NavLink
               to="/twitter"
               className={({ isActive }) =>
                 `${baseClasses} ${isActive ? activeClasses : inactiveClasses}`
               }
             >
               Twitter
-            </NavLink> */}
+            </NavLink>
           </div>
         </div>
       </div>
