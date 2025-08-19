@@ -5,6 +5,8 @@ import InstaPages from "../pages/InstaPages";
 import FaceBookPages from "../pages/FaceBookPages";
 import TwitterPages from "../pages/TwitterPages";
 import Insta from "../pages/InstaPages";
+import TermsAndConditions from "../components/TermsAndConditions";
+import PrivacyPolicy from "../components/PrivacyPolicy";
 
 
 const AppRoutes = () => {
@@ -18,6 +20,8 @@ const AppRoutes = () => {
         <Route path="/twitter" element={<TwitterPages />} />
         
         <Route path="/instagram" element={<InstaPages />} />
+         <Route path="/terms" element={<TermsAndConditions />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
       </Routes>
     </Router>
   );

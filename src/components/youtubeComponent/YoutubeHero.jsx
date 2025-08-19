@@ -1,5 +1,7 @@
+
 import React, { useState } from "react";
 import toast from "react-hot-toast";
+import { Link } from "react-router-dom";
 
 const YoutubeHero = () => {
    const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -8,13 +10,18 @@ const YoutubeHero = () => {
   const [loading, setLoading] = useState(false);
   const [selectedResolution, setSelectedResolution] = useState("");
   const [isDownloading, setIsDownloading] = useState(false); // New state
+  const [downloadingRes, setDownloadingRes] = useState(null);
 
   const handleSearch = async () => {
     if (!videoURL.trim()) {
       toast.error("Please enter a YouTube video URL");
       return;
     }
-
+    const youtubeRegex =  /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
+    if(!youtubeRegex.test(videoURL)) {
+      toast.error("Please enter a valid YouTube video URL");
+      return;
+    }
     setLoading(true);
     setVideoData(null);
     setSelectedResolution("");
@@ -45,56 +52,42 @@ const YoutubeHero = () => {
     }
   };
 
-  const handleDownload = async () => {
-    if (!selectedResolution) {
-      toast.error("Please select a resolution");
-      return;
-    }
-
-    setIsDownloading(true);
-
-    try {
-      const downloadResponse = await fetch(
-        `${backendUrl}/api/video/download/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            url: videoURL,
-            resolution: selectedResolution,
-          }),
+  
+  const handleDownloadFor = async (resolution) => {
+      setDownloadingRes(resolution); // mark this resolution as downloading
+      try {
+        const downloadResponse = await fetch(
+          `${backendUrl}/api/video/download/`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url: videoURL, resolution }),
+          }
+        );
+  
+        if (!downloadResponse.ok) {
+          throw new Error("Failed to initiate download");
         }
-      );
-
-      if (!downloadResponse.ok) {
-        throw new Error("Failed to initiate download");
+  
+        const blob = await downloadResponse.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = downloadUrl;
+        a.download = `${videoData.title || "video"}_${resolution}.mp4`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+  
+        toast.success(`Video (${resolution}) downloaded successfully!`);
+        setVideoURL(""); // Clear input after download
+        setVideoData(null); // Clear video data after download
+      } catch (error) {
+        console.error("Download error:", error);
+        toast.error("Download failed.");
+      } finally {
+        setDownloadingRes(null); // reset after download
       }
-
-      const blob = await downloadResponse.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = downloadUrl;
-      a.download = `${videoData.title || "video"}.mp4`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-
-      // ✅ Show success toast
-      toast.success("Download completed successfully!");
-
-      // ✅ Reset form fields
-      setVideoURL("");
-      setVideoData(null);
-      setSelectedResolution("");
-    } catch (error) {
-      console.error("Download error:", error);
-      toast.error("Download failed.");
-    } finally {
-      setIsDownloading(false);
-    }
-  };
+    };
 
   return (
     <div className="w-full text-center">
@@ -121,82 +114,58 @@ const YoutubeHero = () => {
         </button>
       </div>
 
-      {videoData && (
-        <div className="mt-16 max-w-5xl mx-auto px-6 md:px-10 font-sans text-gray-900">
-          <h1 className="text-4xl font-semibold mb-6 tracking-tight leading-tight">
-            {videoData.title}
-          </h1>
-
-          {videoData.thumbnail && (
-            <div className="w-full aspect-video overflow-hidden rounded-lg">
+       {videoData && (
+        <div className="mt-10 max-w-4xl mx-auto">
+          <div className="flex flex-col md:flex-row rounded-xl overflow-hidden shadow-lg ">
+            {/* Left: Thumbnail + Info */}
+            <div className="md:w-1/2  flex flex-col items-center justify-center p-5">
               <img
                 src={videoData.thumbnail}
-                alt="Video Thumbnail"
-                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                alt={videoData.title}
+                className="w-full rounded-lg shadow-md mb-3"
               />
+              <p className="text-gray-800 font-semibold text-center text-sm  w-full">
+                {videoData.title}
+              </p>
             </div>
-          )}
 
-          <div className="mb-8">
-            <label
-              htmlFor="resolution"
-              className="text-lg font-medium mb-2 block"
-            >
-              Select Resolution
-            </label>
-            <select
-              id="resolution"
-              value={selectedResolution}
-              onChange={(e) => setSelectedResolution(e.target.value)}
-              className="appearance-none bg-transparent border-b-2 border-gray-400 focus:border-blue-600 outline-none px-1 py-2 text-lg w-full transition duration-200"
-            >
-              <option value="">-- Choose an option --</option>
+            {/* Right: Resolution Options */}
+            <div className="md:w-1/2 p-5 space-y-3">
+              <h1 className="text-2xl font-bold mb-6 text-gray-800 border-b-2 border-blue-500 inline-block pb-1">
+                Available Resolutions
+              </h1>
+
               {videoData.available_resolutions.map((res) => (
-                <option key={res} value={res}>
-                  {res}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="mt-10">
-            <button
-              onClick={handleDownload}
-              disabled={!selectedResolution || isDownloading}
-              className={`w-full md:w-auto px-6 py-3 text-lg rounded-full transition ${
-                isDownloading
-                  ? "bg-gray-400 text-white cursor-wait"
-                  : "bg-black text-white hover:bg-gray-900"
-              } disabled:opacity-40 disabled:cursor-not-allowed`}
-            >
-              {isDownloading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <svg
-                    className="animate-spin h-5 w-5 text-white"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
+                <div
+                  key={res}
+                  className="flex items-center justify-between px-4 py-3 rounded-md bg-[#1a1a3d]/60 border border-[#2a2a6e]/50 hover:bg-[#222260]/70 transition"
+                >
+                  <span className="text-gray-200 font-medium">{res}.mp4</span>
+                  <button
+                    onClick={() => handleDownloadFor(res)}
+                    disabled={downloadingRes === res}
+                    className={`px-5 py-2 rounded-md font-semibold text-sm shadow transition-transform transform ${
+                      downloadingRes === res
+                        ? "bg-gray-500 cursor-wait text-white scale-95"
+                        : "bg-red-500 hover:bg-red-600 active:scale-95 text-white"
+                    }`}
                   >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                    />
-                  </svg>
-                  Downloading...
+                    {downloadingRes === res ? "Downloading..." : "Download"}
+                  </button>
                 </div>
-              ) : (
-                "Download Video"
-              )}
-            </button>
+              ))}
+              <p className="mt-4 text-xs text-gray-600 text-center">
+                <span className="text-red-500 font-bold">*</span> By
+                downloading, I accept the
+                <Link
+                  to="/terms"
+                  className="text-blue-600 underline hover:text-blue-800 ml-1"
+                >
+                  terms and conditions
+                </Link>
+                .
+              </p>
+            </div>
           </div>
         </div>
       )}

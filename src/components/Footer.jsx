@@ -1,4 +1,5 @@
-import React from 'react';
+import React from "react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -8,7 +9,8 @@ const Footer = () => {
         <div>
           <h2 className="text-xl font-semibold mb-2">VideoDownload</h2>
           <p className="text-gray-400 text-sm">
-            Download your favorite videos from YouTube and other platforms with ease and speed.
+            Download your favorite videos from YouTube and other platforms with
+            ease and speed.
           </p>
         </div>
 
@@ -16,10 +18,26 @@ const Footer = () => {
         <div>
           <h3 className="text-lg font-semibold mb-2">Quick Links</h3>
           <ul className="text-gray-400 text-sm space-y-1">
-            <li><a href="#" className="hover:text-white">Home</a></li>
-            <li><a href="#" className="hover:text-white">Privacy Policy</a></li>
-            <li><a href="#" className="hover:text-white">Terms of Service</a></li>
-            <li><a href="#" className="hover:text-white">Contact</a></li>
+            <li>
+              <a href="#" className="hover:text-white">
+                Home
+              </a>
+            </li>
+            <li>
+              <Link to="/privacy" className="hover:text-white">
+                Privacy Policy
+              </Link>
+            </li>
+            <li>
+              <Link to="/terms" className="hover:text-white">
+                Terms and Conditions
+              </Link>
+            </li>
+            <li>
+              <a href="#" className="hover:text-white">
+                Contact
+              </a>
+            </li>
           </ul>
         </div>
 
@@ -27,17 +45,34 @@ const Footer = () => {
         <div>
           <h3 className="text-lg font-semibold mb-2">Connect With Us</h3>
           <ul className="text-gray-400 text-sm space-y-1">
-            <li><a href="#" className="hover:text-white">Facebook</a></li>
-            <li><a href="#" className="hover:text-white">Instagram</a></li>
-            <li><a href="#" className="hover:text-white">YouTube</a></li>
-            <li><a href="#" className="hover:text-white">Twitter</a></li>
+            <li>
+              <a href="#" className="hover:text-white">
+                Facebook
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-white">
+                Instagram
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-white">
+                YouTube
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-white">
+                Twitter
+              </a>
+            </li>
           </ul>
         </div>
       </div>
 
       {/* Copyright */}
       <div className="text-center text-gray-500 text-sm mt-8">
-        &copy; {new Date().getFullYear()} VideoDownload. All rights reserved. Powered by Dreamwave Innovation
+        &copy; {new Date().getFullYear()} VideoDownload. All rights reserved.
+        Powered by Dreamwave Innovation
       </div>
     </footer>
   );
